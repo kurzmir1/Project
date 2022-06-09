@@ -60,63 +60,43 @@ wildschwein_BE_win$k12 <- rollmean(wildschwein_BE$steplength, k=12, fill = NA, a
 wildschwein_BE_win$k16 <- rollmean(wildschwein_BE$steplength, k=16, fill = NA, align = "left")
 wildschwein_BE_win$k20 <- rollmean(wildschwein_BE$steplength, k=20, fill = NA, align = "left")
 
-##Values below 10 is static and filter for only static values for each k
+##Make values below 10 static, in newe dataframes for each k
 wildschwein_BE_win_k4 <- wildschwein_BE_win %>% 
   ungroup() %>%
   mutate(static_k4_10 = k4 < 10)
-
-wildschwein_BE_win_k4 <-
-  filter(wildschwein_BE_win_k4, static_k4_10 == "TRUE")
 
 wildschwein_BE_win_k8 <- wildschwein_BE_win %>% 
   ungroup() %>%
   mutate(static_k8_10 = k8 < 10)
 
-wildschwein_BE_win_k8 <-
-  filter(wildschwein_BE_win_k8, static_k8_10 == "TRUE")
-
 wildschwein_BE_win_k12 <- wildschwein_BE_win %>% 
   ungroup() %>%
   mutate(static_k12_10 = k12 < 10)
-
-wildschwein_BE_win_k12 <-
-  filter(wildschwein_BE_win_k12, static_k12_10 == "TRUE")
 
 wildschwein_BE_win_k16 <- wildschwein_BE_win %>% 
   ungroup() %>%
   mutate(static_k16_10 = k16 < 10)
 
-wildschwein_BE_win_k16 <-
-  filter(wildschwein_BE_win_k16, static_k16_10 == "TRUE")
-
 wildschwein_BE_win_k20 <- wildschwein_BE_win %>% 
   ungroup() %>%
   mutate(static_k20_10 = k20 < 10)
-
-wildschwein_BE_win_k20 <-
-  filter(wildschwein_BE_win_k20, static_k20_10 == "TRUE")
-
-
 
 ##Function for making segments
 rle_id <- function(vec){
   x <- rle(vec)$lengths
   as.factor(rep(seq_along(x), times=x))
+}
 
-
+##!!!!!! From here on I only worked with k4 and it finally worked!
 ##Making segments
   wildschwein_BE_win_k4 <-wildschwein_BE_win_k4 %>%
     mutate(
       segment_ID = rle_id(static_k4_10)
     )
   
-  wildschwein_BE_win_moves <- wildschwein_BE_win_k4 %>%
-    filter(!static_k4_10)
+  wildschwein_BE_win_segments_k4 <- wildschwein_BE_win_k4 %>%
 
-
-
-
-
+###!!!!!This didn't work and I don't know why.... 
 ##Caluclate time span of each static segment
 segment_time <- function(pig, id){
   name = paste(pig,id, sep = "")
@@ -131,7 +111,7 @@ segment_time <- function(pig, id){
 
 ?apply
 
-apply("segment_time", wildschwein_BE_win_k4$segment_ID)
+apply("segment_time", wildschwein_BE_win_segments_k4$segment_ID)
 
-result = segment_time(wildschwein_BE_win_k4,1)
+result = segment_time(wildschwein_BE_win_segments_k4,1)
 
