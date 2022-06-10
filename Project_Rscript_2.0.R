@@ -89,29 +89,20 @@ rle_id <- function(vec){
 
 ##!!!!!! From here on I only worked with k4 and it finally worked!
 ##Making segments
-  wildschwein_BE_win_k4 <-wildschwein_BE_win_k4 %>%
-    mutate(
-      segment_ID = rle_id(static_k4_10)
-    )
-  
-  wildschwein_BE_win_segments_k4 <- wildschwein_BE_win_k4 %>%
+wildschwein_BE_win_k4 <-wildschwein_BE_win_k4 %>%
+  mutate(
+    segment_ID = rle_id(static_k4_10)
+  )
 
-###!!!!!This didn't work and I don't know why.... 
 ##Caluclate time span of each static segment
-segment_time <- function(pig, id){
-  name = paste(pig,id, sep = "")
-  name <- pig %>%
-    filter(pig$segment_ID == id)
-  start = 1
-  end = nrow(name)
-  name$timeDiff <- as.numeric(difftime(name$DatetimeUTC[end],name$DatetimeUTC[start], units = "mins"))
+wildschwein_BE_win_k4_segments <- wildschwein_BE_win_k4 %>%
+  st_drop_geometry() %>%
+  group_by(TierID, segment_ID) %>%
+  summarise(min = min(DatetimeUTC), max = max(DatetimeUTC)) %>%
+  mutate(timediff = as.integer(difftime(max, min, units = "mins")))
+
   
-  return(name)
-}
+  
 
-?apply
 
-apply("segment_time", wildschwein_BE_win_segments_k4$segment_ID)
-
-result = segment_time(wildschwein_BE_win_segments_k4,1)
 
