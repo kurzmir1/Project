@@ -28,8 +28,8 @@ crop_fanel <- crop_fanel %>%
   mutate(Wald = Frucht == "Wald")
 
 ##Annotating habitat to all points
-wildschwein_BE <- 
-  st_join(wildschwein_BE, crop_fanel)
+wildschwein_BE_win_k12_segments_withgeometry_2h_withcrop <- 
+  st_join(wildschwein_BE_win_k12_segments_withgeometry_2h, crop_fanel)
 
 ##Calculate steplength
 
@@ -68,13 +68,35 @@ wildschwein_BE_win_k12 <-wildschwein_BE_win_k12 %>%
 wildschwein_BE_win_k12_segments <- wildschwein_BE_win_k12 %>%
   st_drop_geometry() %>%
   filter(static_k12_10 == "TRUE") %>%
-  group_by(TierID, segment_ID) %>%
+  group_by(segment_ID) %>%
   summarise(min = min(DatetimeUTC), max = max(DatetimeUTC)) %>%  
   mutate(timediff = as.integer(difftime(max, min, units = "mins")))
 
-##Add the timespan of rolling window to the time span of each segment
-wildschwein_BE_win_k12_segments <-wildschwein_BE_win_k12_segments %>% 
-  mutate (timediff_plusrollingwindow = timediff + 180)
+##Giving each segment the first coordinate of the segment
+wildschwein_segments_withE <- wildschwein_BE_win_k12 %>%
+  st_drop_geometry() %>%
+  group_by(segment_ID) %>%
+  summarise(segment_E = first(E))
+
+wildschwein_segments_withN <- wildschwein_BE_win_k12 %>%
+  st_drop_geometry() %>%
+  group_by(segment_ID) %>%
+  summarise(segment_N = first(N))
+
+wildschwein_BE_win_k12_segments_withgeometry <-
+  left_join(wildschwein_BE_win_k12_segments, wildschwein_segments_withE, by = "segment_ID")
+
+wildschwein_BE_win_k12_segments_withgeometry <-
+  left_join(wildschwein_BE_win_k12_segments_withgeometry, wildschwein_segments_withN, by = "segment_ID")
+
+wildschwein_BE_win_k12_segments_withgeometry <- st_as_sf(wildschwein_BE_win_k12_segments_withgeometry, coords = c("segment_E", "segment_N"), crs = 2056, remove = FALSE)
+
+
+
+##Filter out all static segments below 2h
+wildschwein_BE_win_k12_segments_withgeometry_2h <- wildschwein_BE_win_k12_segments_withgeometry %>%
+  filter(timediff > 120)
+
 
 ##Calculate mean static time per animal
 mean_static_animal <- wildschwein_BE_win_k12_segments %>% 
@@ -85,15 +107,59 @@ mean_static_animal <- wildschwein_BE_win_k12_segments %>%
 wildschwein_BE_win_k12_static <- wildschwein_BE_win_k12 %>%
   filter(static_k12_10 == "TRUE")
 
+
+##Make dataframe for one week in 2015 for Ruth, Rosa, Isabelle, Caroline, Nicole, Sabine
+girls_January2015 <- wildschwein_BE %>%
+  filter(TierName %in% girls) %>%
+  filter(DatetimeUTC >=as.Date("2015-01-01")& DatetimeUTC <=as.Date("2015-01-08"))
+
+girls <- c("Sabine", "Ruth", "Rosa", "Isabelle", "Caroline", "Nicole")
+
+rm(girls_Januar2015)
+
 #########Visualization
 ##Visualizing during what daytime the static segments are
 day <- table(wildschwein_BE_win_k12_static$day)
 barplot(day)
 
+day
+
 ##Visualizing in what habitat the static segments are
-Frucht <- table(wildschwein_BE_win_k12_static$Frucht)
+Frucht <- table(wildschwein_BE_win_k12_segments_withgeometry_2h_withcrop$Frucht)
 barplot(Frucht)
 
 Wald <- table(wildschwein_BE_win_k12_static$Wald)
 barplot(Wald)
+
+write.csv(mean_static_animal)
+
+##Visualize steplength of girls_January2015 during time
+
+ggplot(girls_January2015, mapping = aes(DatetimeUTC, steplength))+
+  geom_line(aes(colour=TierName))+
+  facet_wrap(~TierName)
+
+
+
+##Visualize length of static segments
+
+ggplot(wildschwein_BE_win_k12_segments, mapping = aes(timediff))+
+  geom_histogram()+
+  xlim(0,1000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
