@@ -28,8 +28,8 @@ crop_fanel <- crop_fanel %>%
   mutate(Wald = Frucht == "Wald")
 
 ##Annotating habitat to all points
-wildschwein_BE_win_k12_segments_withgeometry_2h_withcrop <- 
-  st_join(wildschwein_BE_win_k12_segments_withgeometry_2h, crop_fanel)
+wildschwein_BE <- 
+  st_join(wildschwein_BE, crop_fanel)
 
 ##Calculate steplength
 
@@ -42,13 +42,13 @@ mean(wildschwein_BE$steplength, na.rm=TRUE)
 median(wildschwein_BE$steplength, na.rm=TRUE)
 
 
-##calculate mean distance for different rolling windows
-wildschwein_BE_win <- wildschwein_BE
-wildschwein_BE_win$k12 <- rollmean(wildschwein_BE$steplength, k=12, fill = NA, align = "left")
+##calculate mean distance for rolling window k12
+window_k12 <- wildschwein_BE
+window_k12$k12 <- rollmean(wildschwein_BE$steplength, k=12, fill = NA, align = "left")
 
 
 ##Make values below 10 static, in new dataframe
-wildschwein_BE_win_k12 <- wildschwein_BE_win %>% 
+window_k12 <- window_k12 %>% 
   ungroup() %>%
   mutate(static_k12_10 = k12 < 10)
 
@@ -59,53 +59,51 @@ rle_id <- function(vec){
 }
 
 ##Making segments
-wildschwein_BE_win_k12 <-wildschwein_BE_win_k12 %>%
+window_k12 <-window_k12 %>%
   mutate(
     segment_ID = rle_id(static_k12_10)
   )
 
+
+
 ##Calculate time span of each static segment
-wildschwein_BE_win_k12_segments <- wildschwein_BE_win_k12 %>%
+k12_segments <- window_k12 %>%
   st_drop_geometry() %>%
   filter(static_k12_10 == "TRUE") %>%
-  group_by(segment_ID) %>%
+  group_by(TierName, segment_ID) %>%
   summarise(min = min(DatetimeUTC), max = max(DatetimeUTC)) %>%  
   mutate(timediff = as.integer(difftime(max, min, units = "mins")))
 
+
+
 ##Giving each segment the first coordinate of the segment
-wildschwein_segments_withE <- wildschwein_BE_win_k12 %>%
-  st_drop_geometry() %>%
+segments_E <- window_k12 %>%
+  st_drop_geometry %>%
   group_by(segment_ID) %>%
   summarise(segment_E = first(E))
 
-wildschwein_segments_withN <- wildschwein_BE_win_k12 %>%
+segments_N <- window_k12 %>%
   st_drop_geometry() %>%
   group_by(segment_ID) %>%
   summarise(segment_N = first(N))
 
-wildschwein_BE_win_k12_segments_withgeometry <-
-  left_join(wildschwein_BE_win_k12_segments, wildschwein_segments_withE, by = "segment_ID")
+k12_segments <-
+  left_join(k12_segments, segments_E, by = "segment_ID")
 
-wildschwein_BE_win_k12_segments_withgeometry <-
-  left_join(wildschwein_BE_win_k12_segments_withgeometry, wildschwein_segments_withN, by = "segment_ID")
+k12_segments <-
+  left_join(k12_segments, segments_N, by = "segment_ID")
 
-wildschwein_BE_win_k12_segments_withgeometry <- st_as_sf(wildschwein_BE_win_k12_segments_withgeometry, coords = c("segment_E", "segment_N"), crs = 2056, remove = FALSE)
-
-
+k12_segments <- st_as_sf(k12_segments, coords = c("segment_E", "segment_N"), crs = 2056, remove = FALSE)
 
 ##Filter out all static segments below 2h
-wildschwein_BE_win_k12_segments_withgeometry_2h <- wildschwein_BE_win_k12_segments_withgeometry %>%
+k12_segments_2h <- k12_segments %>%
   filter(timediff > 120)
 
 
 ##Calculate mean static time per animal
-mean_static_animal <- wildschwein_BE_win_k12_segments %>% 
-  group_by(TierID) %>%
-  summarise_at(vars(timediff_plusrollingwindow), list(name = mean))
-
-##Filter for static k12 segments 
-wildschwein_BE_win_k12_static <- wildschwein_BE_win_k12 %>%
-  filter(static_k12_10 == "TRUE")
+mean_static_animal <- k12_segments_2h %>% 
+  group_by(TierName) %>%
+  summarise_at(vars(timediff), list(name = mean))
 
 
 ##Make dataframe for one week in 2015 for Ruth, Rosa, Isabelle, Caroline, Nicole, Sabine
