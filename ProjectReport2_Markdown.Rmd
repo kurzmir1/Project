@@ -1,0 +1,195 @@
+# Detecting resting behavior of wild boar in GPS data
+by Nina Poglic & Mirjam Kurz
+
+MSc ENR, ZHAW
+Patterns and Trends in Environmental Data
+
+Date: 3.7.2022
+
+
+#### Packages and loading data
+```{r, warning = FALSE, message = FALSE}
+library(ComputationalMovementAnalysisData)
+
+library(readr)        # to import tabular data (e.g. csv)
+library(dplyr)        # to manipulate (tabular) data
+library(ggplot2)      # to visualize data
+library(sf)           # to handle spatial vector data
+library(terra)        # To handle raster data
+library(lubridate)    # To handle dates and times
+library(zoo)
+
+load(file='wildschwein_BE.rda')
+
+wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, remove = FALSE)
+
+crop_fanel <- read_sf("Feldaufnahmen_Fanel.gpkg") 				#Reading in habitat data
+
+wildschwein_BE <- 
+  st_join(wildschwein_BE, crop_fanel) #Annotating habitat to all points
+
+wildschwein_BE$day[wildschwein_BE$day != "Tag"] <- "Nacht" 		#Sorting everything into day or night
+```
+
+
+## Introduction
+
+
+## Material and Methods
+### Dataset
+The GPS data describing the movement of the wild boar was provided by the ZHAW. 
+The dataset contained a total of 327’255 location fix points with the following attributes:
+ *TierID: Animal ID
+ *TierName: Animal name
+ *DatetimeUTC: Date and time
+ *Geometry: location of animal (coordinates)
+ *Day: Category of daytime 	
+   *Day: 8 am – 9.15 pm
+   *Dusk: 9.15 – 10 pm
+   *1st night quarter: 10 – 11.30 pm
+   *2nd night quarter: 11.30 pm – 1.15 am
+   *3rd night quarter: 1.15 – 3.30 am
+   *4th night quarter): 3.30 – 5 am
+   *Dawn: 5 – 8 am
+We did not use the additional information on moon illumination and the collar ID for this project.
+The data was collected with GPS collars fitted to 19 wild boars. They were programmed to attempt a GPS location fix every 15 minutes. The mean time lag between consecutive points was 17.8 minutes. The total study time lasted for 874 days from the 28th of May 2014 to the 18th of October 2016. However, not all animals were monitored at the same time and some individuals show gaps in their sampling interval (see Figure 1). 
+
+
+In addition, we received a dataset from the ZHAW containing habitat information about the investigates area. This dataset included the factors forest, wet meadow and x different crops. 
+
+### Analysis
+We used RStudio 2021.09.0 for all subsequently described analysis.
+To answer the research question of when the monitored wild boar were stationary, we first calculated the step length for each fix point, meaning the Euclidean distance between consecutive fix points. We then used a temporal window approach as described in Laube & Purves (2011). We tried different window sizes (k) from k = 4 to k = 20, corresponding to time frames of approximately one to five hours considering the mean time lag between consecutive points. Since we were looking for longer stationary periods, we decided to use k = 12 (3 hours) for subsequent analysis. For each temporal window, we calculated the mean step length. 
+To find stationary time spans in the wild boar movement we needed to define a threshold of mean step length per temporal window. We defined all temporal windows with a mean Euclidian distance of less than 10 m as static. This threshold was chosen due to the approximate accuracy of the GPS device being 10 m. We then joined all consecutive static temporal windows to one segment and removed the non-static segments. Finally, we calculated the mean time frame of each static segment. The segments were then filtered, and any with lengths of less than two hours were removed as we were interested in long stationary segments.
+In order to answer the second research question, we added the habitat information to the filtered stationary segments. We then evaluated in what habitat the stationary segments are located and if any seasonal or daily structure could be observed. 
+
+
+
+## Results
+
+In a first step, we explored the calculated step lengths. The mean step length of all animals was 39 meters, the median seven meters (see Figure 2). 
+```{r, warning = FALSE, message = FALSE, echo=FALSE}
+wildschwein_BE <- wildschwein_BE %>%
+  group_by(TierID) %>%
+  mutate(steplength = sqrt((E- lead(E,1))^2 + (N -lead(N,1))^2)) #Calculating steplength
+
+mean(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating mean steplength
+
+median(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating median steplength
+ 
+steplength <- wildschwein_BE$steplength         #Visualizing steplengths
+hist(steplength, breaks = 100, xlim = c(0, 500))
+```
+
+We then searched for a period when many animals were monitored at the same time and visualized the steps of these individuals. In Figure 3 the seven chosen individuals (Caroline, Fritz, Isabelle, Nicole, Rosa, Ruth, Sabine) all show a similar step pattern during the first week of January 2015, with more active and more static stretches. 
+```{r, warning = FALSE, message = FALSE, echo=FALSE}
+
+all_January2015 <- wildschwein_BE %>%				#Making dataframe for all animals in one week in 2015
+  filter(DatetimeUTC >=as.Date("2015-01-01")& DatetimeUTC <=as.Date("2015-01-08"))
+  
+ggplot(all_January2015, mapping = aes(DatetimeUTC, steplength))+ 	#Visualizing steplength of all_January2015 
+  geom_line(aes(colour=TierName))+
+  facet_wrap(~TierName)
+```
+
+
+
+## R code
+
+
+## Steplengths
+```{r, warning = FALSE, message = FALSE}
+wildschwein_BE <- wildschwein_BE %>%
+  group_by(TierID) %>%
+  mutate(steplength = sqrt((E- lead(E,1))^2 + (N -lead(N,1))^2)) #Calculating steplength
+
+mean(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating mean steplength
+
+median(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating median steplength
+
+all_January2015 <- wildschwein_BE %>%				#Making dataframe for all animals in one week in 2015
+  filter(DatetimeUTC >=as.Date("2015-01-01")& DatetimeUTC <=as.Date("2015-01-08"))
+  
+ggplot(all_January2015, mapping = aes(DatetimeUTC, steplength))+ 	#Visualizing steplength of all_January2015 
+  geom_line(aes(colour=TierName))+
+  facet_wrap(~TierName)
+```
+## Stationary segments
+```{r, warning = FALSE, message = FALSE}
+window_k12 <- wildschwein_BE
+window_k12$k12 <- rollmean(wildschwein_BE$steplength, k=12, fill = NA, align = "left") #calculate mean distance for rolling window k12
+
+window_k12 <- window_k12 %>% 
+  ungroup() %>%
+  mutate(stationary_k12_10 = k12 < 10) 				#Assigning values below 10 as stationary, in new dataframe
+
+rle_id <- function(vec){						#Function for making segments
+  x <- rle(vec)$lengths
+  as.factor(rep(seq_along(x), times=x)) 
+}
+
+window_k12 <-window_k12 %>% 					#Making segments
+  mutate(
+    segment_ID = rle_id(stationary_k12_10) 
+  )
+
+
+k12_segments <- window_k12 %>%					#Calculating time span of each stationary segment
+  st_drop_geometry() %>%
+  filter(stationary_k12_10 == "TRUE") %>%
+  group_by(TierName, segment_ID) %>%
+  summarise(min = min(DatetimeUTC), max = max(DatetimeUTC)) %>%  
+  mutate(timediff = as.integer(difftime(max, min, units = "mins")))
+
+
+segments_E <- window_k12 %>%					#Giving each segment the first coordinate of the segment
+  st_drop_geometry %>%
+  group_by(segment_ID) %>%
+  summarise(segment_E = first(E))
+
+segments_N <- window_k12 %>%
+  st_drop_geometry() %>%
+  group_by(segment_ID) %>%
+  summarise(segment_N = first(N))
+
+k12_segments <-
+  left_join(k12_segments, segments_E, by = "segment_ID")
+
+k12_segments <-
+  left_join(k12_segments, segments_N, by = "segment_ID")
+
+k12_segments <- st_as_sf(k12_segments, coords = c("segment_E", "segment_N"), crs = 2056, remove = FALSE)
+
+k12_segments_2h <- k12_segments %>% 			#Filtering out all stationary segments below 2h
+  filter(timediff > 120)
+  
+```
+## Exploring stationary segments
+```{r, warning = FALSE, message = FALSE}
+mean(k12_segments_2h$timediff)					#Calculating mean of all stationary segments
+
+median(k12_segments_2h$timediff)				#Calculating median of all stationary segments
+	
+mean_stationary_animal <- k12_segments_2h %>% 		#Calculating mean stationary time per animal
+  st_drop_geometry() %>%
+  group_by(TierName) %>%
+  summarise_at(vars(timediff), list(name = mean))
+
+write.table(mean_stationary_animal)
+
+
+k12_segments_2h <- k12_segments_2h %>%    #Adding hour of start and end of a segment
+  mutate(hour_min = hour(min))
+
+k12_segments_2h <- k12_segments_2h %>%
+  mutate(hour_max = hour(max))
+
+hour_min <- table(k12_segments_2h$hour_min) #Visualiing start of segments
+barplot(hour_min)
+
+hour_max <- table(k12_segments_2h$hour_max) #Visualiing end of segments
+barplot(hour_max)
+```
+
+
+
