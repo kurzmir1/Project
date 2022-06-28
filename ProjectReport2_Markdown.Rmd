@@ -41,6 +41,21 @@ Our main questions for this research were how long the wild boar sleep and where
 
 
 ## Material and Methods
+## Study area
+The reange of observed area mostly include Gampelen and its surroundings. Gampelen is mostly coverd with land for agricultural purposes and forest, and lays by the Lake Neuchâtel. 
+
+### Home range of animals
+```{r}
+wildschwein_BE_grouped <- group_by(wildschwein_BE,TierID)
+wildschwein_BE_smry <- summarise(wildschwein_BE_grouped)
+mcp <- st_convex_hull(wildschwein_BE_smry)
+
+tmap_mode("view")
+tm_shape(mcp) +
+    tm_polygons(col = "TierID",alpha = 0.4,border.col = "orange") +
+    tm_legend(bg.color = "white")
+```
+
 ### Dataset
 The GPS data describing the movement of the wild boar was provided by the ZHAW. 
 The dataset contained a total of 327’255 location fix points with the following attributes:
