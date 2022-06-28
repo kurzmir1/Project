@@ -39,7 +39,9 @@ wildschwein_BE<-wildschwein_BE %>%
   group_by(TierID) %>%
   mutate(timelag=as.integer(difftime(lead(DatetimeUTC), DatetimeUTC,units="secs")))
 
+mean(wildschwein_BE$timelag, na.rm = TRUE)
 
+median(wildschwein_BE$timelag, na.rm = TRUE)
 
 ##Calculate speed
 wildschwein_BE <- wildschwein_BE %>%
@@ -180,6 +182,8 @@ ggplot(crop_fanel) +
 ##Annotating habitat to static segments
 wildschwein_k12_static_habitat <- 
   st_join(wildschwein_BE_win_k12, crop_fanel)
+
+Wald <- rast("log")
 
 
 
