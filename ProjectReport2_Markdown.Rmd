@@ -226,4 +226,17 @@ ggplot(data =all_segments, mapping = aes(x= E, y=N) )+
   coord_equal()+
   facet_wrap(~ TierName, ncol = 5)
 ```
+We also added all the static segments of all the animals on the map. We can see that the majority of the observed wild boar are spending their resting time near the wetlend or in the woods. 
 
+## Static segments on the map
+```{r}
+library(terra)
+pk100_BE <- terra::rast("pk100_BE.tif")
+plot(pk100_BE)
+
+library(tmap)
+tm_shape(pk100_BE) + 
+  tm_rgb() +
+tm_shape(k12_segments_2h) +
+  tm_symbols(col = "blue", size = .3) 
+```
