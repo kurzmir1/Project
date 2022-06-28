@@ -33,6 +33,11 @@ wildschwein_BE$day[wildschwein_BE$day != "Tag"] <- "Nacht" 		#Sorting everything
 
 
 ## Introduction
+The wild boar is the wild ancestor of the domestic pig. The male is called boar, the female sow, and the subadult piglet or yearling. Wild boar are omnivorous ungulates native to Europe, Asia, and northern Africa (Thurfjell, n.d.). Wild boar is an adaptable species that can be found in urban areas utilizing both natural forage and human waste (Thurfjell, n.d.). They are social animals and live in groups with adult females and their offspring, while adult males are solitary (Thurfjell, n.d.). 
+
+The spatial behavior of an animal has a wide meaning such as movement, habitat selection, home range, core area, territoriality, and migration. It can be influenced by decisions relating to foraging, movement, avoidance, resting, territorial activity, mating, and rearing young. In this research project, we were analyzing the resting behavior. On average the wild boar is sleeping around twelve hours per day.
+
+Our main questions for this research were how long the wild boar sleep and where they usually choose to sleep (forest or agricultural land).
 
 
 ## Material and Methods
