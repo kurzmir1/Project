@@ -54,6 +54,24 @@ The dataset contained a total of 327’255 location fix points with the followin
 We did not use the additional information on moon illumination and the collar ID for this project.
 The data was collected with GPS collars fitted to 19 wild boars. They were programmed to attempt a GPS location fix every 15 minutes. The mean time lag between consecutive points was 17.8 minutes. The total study time lasted for 874 days from the 28th of May 2014 to the 18th of October 2016. However, not all animals were monitored at the same time and some individuals show gaps in their sampling interval (see Figure 1). 
 
+```{r , echo=FALSE}
+limits <- c(0,500)
+breaks = seq(0,500,50)
+labels = paste(c(rep("",length(breaks)-1),">"), breaks)
+
+wildschwein_BE %>%
+  mutate(TierName = fct_reorder(TierName, DatetimeUTC,min, .desc = TRUE)) %>%
+  group_by(TierID, TierName, CollarID) %>%
+  mutate(
+    timelag = as.numeric(difftime(lead(DatetimeUTC),DatetimeUTC, units = "mins")),
+  ) %>%
+  ggplot(aes(DatetimeUTC, TierName, colour = timelag)) +
+  geom_line(lwd = 2) +
+  scale_color_gradientn(name = "Sampling interval", colours = RColorBrewer::brewer.pal(11, "Spectral"), limits = limits, na.value = NA, oob = scales::squish, breaks = seq(0,500,50), labels = labels) +
+  theme_minimal() +
+  theme(legend.position = "top") +
+  guides(color = guide_colorbar(title.position = "top", title.hjust = .5, barwidth = unit(20, "lines"), barheight = unit(.5, "lines")))
+```
 
 In addition, we received a dataset from the ZHAW containing habitat information about the investigates area. This dataset included the factors forest, wet meadow and x different crops. 
 
@@ -163,6 +181,9 @@ k12_segments <- st_as_sf(k12_segments, coords = c("segment_E", "segment_N"), crs
 k12_segments_2h <- k12_segments %>% 			#Filtering out all stationary segments below 2h
   filter(timediff > 120)
   
+k12_segments_2h <- 					#Adding TierName
+  st_join(k12_segments_2h, wildschwein_BE_win_k12, by = "segment_ID") 
+  
 ```
 ## Exploring stationary segments
 ```{r, warning = FALSE, message = FALSE}
@@ -189,7 +210,20 @@ barplot(hour_min)
 
 hour_max <- table(k12_segments_2h$hour_max) #Visualiing end of segments
 barplot(hour_max)
+
 ```
+We were interest in the location of static segments of monitored animals. Because the sampling time and interval is different for many observed animal, we analyzed four animals, which had the most data points. We observed their behaviour in time 5 months time period, from 1.1.2015 to 5.1.2015. From the graph we can see that the static segments are distributed differently for each animal. Carolines and Rosas static points are scattered around the observed area, and Ruths and Sabines static points are more or less in the same place.
 
+##Static segments < 2h
+```{r}
+target <- c("Sabine", "Caroline", "Rosa", "Ruth")
+all_segments <- k12_segments_2h %>%
+  filter(TierName %in% target)%>%
+  filter(DatetimeUTC >=as.Date("2015-01-01")& DatetimeUTC <=as.Date("2015-05-01"))
 
+ggplot(data =all_segments, mapping = aes(x= E, y=N) )+
+  geom_point(aes(colour=TierName))+
+  coord_equal()+
+  facet_wrap(~ TierName, ncol = 5)
+```
 
