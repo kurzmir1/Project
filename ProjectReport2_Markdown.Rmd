@@ -110,7 +110,7 @@ wildschwein_BE <- wildschwein_BE %>%
   mutate(steplength = sqrt((E- lead(E,1))^2 + (N -lead(N,1))^2)) #Calculating steplength
  
 steplength <- wildschwein_BE$steplength         #Visualizing steplengths
-hist(steplength, breaks = 10, xlim = c(0, 50), main=NULL)
+hist(steplength, breaks = 100, xlim = c(0, 500), main=NULL)
 ```
 
 We then searched for a period when many animals were monitored at the same time and visualized the steps of these individuals. In Figure 4 the seven chosen individuals (Caroline, Fritz, Isabelle, Nicole, Rosa, Ruth, Sabine) all show a similar step pattern during the first week of January 2015, with more active and more static stretches. 
