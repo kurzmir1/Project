@@ -33,7 +33,7 @@ wildschwein_BE <-
 ## Introduction
 As GPS technology is advancing, there is a surge in the development of new methods for studying animal movement. One particular interest is to infer animal spatial behavior from movement data. 
 The spatial behavior of an animal has a wide meaning such as movement, habitat selection, home range, core area, territoriality, and migration. It can be influenced by decisions relating to foraging, movement, avoidance, resting, territorial activity, mating, and rearing young. In movement data, these behaviors can all show specific patterns (Hance et al, 2021). However, it is often the case, that a time series of animal locations is the result of multiple behaviors (Patterson et al, 2009). For example, an animal staying in one place because it is sleeping or moving very slowly while foraging results in a similar static pattern: the distance between consecutive points would be very low. Distinguishing between such similar patterns and concluding on the underlying behavior is a challenge. 
-In this research project, we attempt to make conclusions about the resting behavior of 19 wild boars based on their movement data. More specifically, we tried finding periods in time when the wild boars did not move quickly, in which they were thus stationary. As it is reported that wild boar sleep around twelve hours per day (source??), we were interested in the length of the time span in which the monitored animals stayed stationary.
+In this research project, we attempt to make conclusions about the resting behavior of 19 wild boars based on their movement data. More specifically, we tried finding periods in time when the wild boars did not move quickly, in which they were thus stationary. As it is reported that wild boar sleep around twelve hours per day (Wild Boar – WLS, n.d.), we were interested in the length of the time span in which the monitored animals stayed stationary.
 Further, we investigated where the wild boar spend these stationary periods. In general, wild boar prefer broad-leaved forests with older mast species (beech, oak) while foraging, and in contrast, the coniferous forest is preferred for their resting sites as well as secure places for wallowing and sleeping (Erdtmann & Keuling, 2020). 
 The research questions were thus:
 •	For how long are the monitored wild boar stationary on average?
@@ -231,7 +231,9 @@ barplot(segment_habitat)
 
 ##Discussion
 It’s difficult to link the observed pattern in the GPS data to the behavior of resting. Similar patterns could arise from different behaviors or could be a mixture of multiple behaviors. With our approach inspired by Laube & Purves (2011) we tried differentiating between segments when the animals were walking very slowly or actually staying in one place. However, if the animals move slowly for many hours, the mean of the temporal window would stay just as small as when the animal is staying in one place. The approach described in Hance et al. (2021) could offer a solution to answer our research questions further. 
-It could also be interesting to see if the hypothesis that resting behavior is mostly after foraging.
+Because the time intervals of the measurements of animals were different and for some animals there were gabs between two observed fix points, our resultants may have some deviations from an actual behavior. 
+It could also be interesting to see if the hypothesis that resting behavior is mostly after foraging is true.
+
 
 More points to discuss:
 •	Different time intervals of measurements
