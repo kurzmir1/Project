@@ -18,6 +18,7 @@ library(sf)           # to handle spatial vector data
 library(terra)        # To handle raster data
 library(lubridate)    # To handle dates and times
 library(zoo)
+library(forcats)
 
 load(file='wildschwein_BE.rda')
 
@@ -34,15 +35,14 @@ wildschwein_BE$day[wildschwein_BE$day != "Tag"] <- "Nacht" 		#Sorting everything
 
 ## Introduction
 The wild boar is the wild ancestor of the domestic pig. The male is called boar, the female sow, and the subadult piglet or yearling. Wild boar are omnivorous ungulates native to Europe, Asia, and northern Africa (Thurfjell, n.d.). Wild boar is an adaptable species that can be found in urban areas utilizing both natural forage and human waste (Thurfjell, n.d.). They are social animals and live in groups with adult females and their offspring, while adult males are solitary (Thurfjell, n.d.). 
-
-The spatial behavior of an animal has a wide meaning such as movement, habitat selection, home range, core area, territoriality, and migration. It can be influenced by decisions relating to foraging, movement, avoidance, resting, territorial activity, mating, and rearing young. In this research project, we were analyzing the resting behavior. On average the wild boar is sleeping around twelve hours per day.
-
-Our main questions for this research were how long the wild boar sleep and where they usually choose to sleep (forest or agricultural land).
+The spatial behavior of an animal has a wide meaning such as movement, habitat selection, home range, core area, territoriality, and migration. It can be influenced by decisions relating to foraging, movement, avoidance, resting, territorial activity, mating, and rearing young. In general, wild boar prefer broad-leaved forests with older mast species (beech, oak) while foraging, and in contrast, the coniferous forest is preferred for their resting sites as well as secure places for wallowing and sleeping (Erdtmann & Keuling, 2020). These findings pave the way toward implementing effective control strategies in the wild and animal welfare in captivity. 
+In this research project, we were analyzing the resting behavior. On average the wild boar is reported to be sleeping around twelve hours per day. Our main questions were how long the wild boar sleep and where they usually choose to sleep (forest or agricultural land). 
+Our research is based on the assumption that resting behavior is defined by static movement (short step lengths), but it could also be that animals are in one place for a longer period of time to clean themselves. The GPS couldn’t recognize the difference between the two, therefor we had to define the treshold which could help to rule out non-resting behavior, with the assumtion, that wild boars do not clean for several hours.  
 
 
 ## Material and Methods
 ## Study area
-The reange of observed area mostly include Gampelen and its surroundings. Gampelen is mostly coverd with land for agricultural purposes and forest, and lays by the Lake Neuchâtel. 
+The range of observed area mostly include Gampelen and Ins and its surroundings. Gampelen and Ins are municipalities that lay in the canton of Bern and are mostly covered with land for agricultural purposes and forest. Area lays by the Lake Neuchâtel, which provide wild bord the source of water. From the picture bellow we can see, that movement of animals is spread across the area, but the majority of the animals stay near the lake. 
 
 ### Home range of animals
 ```{r}
@@ -72,7 +72,7 @@ The dataset contained a total of 327’255 location fix points with the followin
    *4th night quarter): 3.30 – 5 am
    *Dawn: 5 – 8 am
 We did not use the additional information on moon illumination and the collar ID for this project.
-The data was collected with GPS collars fitted to 19 wild boars. They were programmed to attempt a GPS location fix every 15 minutes. The mean time lag between consecutive points was 17.8 minutes. The total study time lasted for 874 days from the 28th of May 2014 to the 18th of October 2016. However, not all animals were monitored at the same time and some individuals show gaps in their sampling interval (see Figure 1). 
+The data was collected with GPS collars fitted to 19 wild boars. They were programmed to attempt a GPS location fix every 15 minutes. The mean time lag between consecutive points was 17.8 minutes. The total study time lasted for 874 days from the 28th of May 2014 to the 18th of October 2016. However, not all animals were monitored at the same time and some individuals show gaps in their sampling interval (see Figure bellow). 
 
 ```{r , echo=FALSE}
 limits <- c(0,500)
@@ -93,19 +93,28 @@ wildschwein_BE %>%
   guides(color = guide_colorbar(title.position = "top", title.hjust = .5, barwidth = unit(20, "lines"), barheight = unit(.5, "lines")))
 ```
 
-In addition, we received a dataset from the ZHAW containing habitat information about the investigates area. This dataset included the factors forest, wet meadow and x different crops. 
+In addition, we received a dataset from the ZHAW containing habitat information about the investigates area. This dataset includes the factors forest, wet meadow and different types of crops. 
+
+## Habitat data
+```{r}
+crop_fanel <- read_sf("Feldaufnahmen_Fanel.gpkg")
+ggplot(crop_fanel) +
+  geom_sf(aes(fill = Frucht))
+
+```
 
 ### Analysis
 We used RStudio 2021.09.0 for all subsequently described analysis.
 To answer the research question of when the monitored wild boar were stationary, we first calculated the step length for each fix point, meaning the Euclidean distance between consecutive fix points. We then used a temporal window approach as described in Laube & Purves (2011). We tried different window sizes (k) from k = 4 to k = 20, corresponding to time frames of approximately one to five hours considering the mean time lag between consecutive points. Since we were looking for longer stationary periods, we decided to use k = 12 (3 hours) for subsequent analysis. For each temporal window, we calculated the mean step length. 
-To find stationary time spans in the wild boar movement we needed to define a threshold of mean step length per temporal window. We defined all temporal windows with a mean Euclidian distance of less than 10 m as static. This threshold was chosen due to the approximate accuracy of the GPS device being 10 m. We then joined all consecutive static temporal windows to one segment and removed the non-static segments. Finally, we calculated the mean time frame of each static segment. The segments were then filtered, and any with lengths of less than two hours were removed as we were interested in long stationary segments.
+To find stationary time spans in the wild boar movement we needed to define a threshold of mean step length per temporal window. We defined all temporal windows with a mean Euclidian distance of less than 10 m as static. This threshold was chosen due to the approximate accuracy of the GPS device being 10 m. We then joined all consecutive static temporal windows to one segment and removed the non-static segments. Finally, we calculated the mean time frame of each static segment. The segments were then filtered, and any lengths with less than two hours were removed, as we were interested in long stationary segments.
 In order to answer the second research question, we added the habitat information to the filtered stationary segments. We then evaluated in what habitat the stationary segments are located and if any seasonal or daily structure could be observed. 
 
 
 
 ## Results
 
-In a first step, we explored the calculated step lengths. The mean step length of all animals was 39 meters, the median seven meters (see Figure 2). 
+In a first step, we explored the calculated step lengths. The mean step length of all animals was 39 meters, the median seven meters (see Figure bellow). We can see that animals are mostly not taking long distance and are moving slower.
+
 ```{r, warning = FALSE, message = FALSE, echo=FALSE}
 wildschwein_BE <- wildschwein_BE %>%
   group_by(TierID) %>%
@@ -116,13 +125,16 @@ mean(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating mean steplength
 median(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating median steplength
  
 steplength <- wildschwein_BE$steplength         #Visualizing steplengths
-hist(steplength, breaks = 100, xlim = c(0, 500))
+hist(steplength, breaks = 100, xlim = c(0, 500),
+  col="darkmagenta",
+  )
 ```
 
-We then searched for a period when many animals were monitored at the same time and visualized the steps of these individuals. In Figure 3 the seven chosen individuals (Caroline, Fritz, Isabelle, Nicole, Rosa, Ruth, Sabine) all show a similar step pattern during the first week of January 2015, with more active and more static stretches. 
+We then searched for a period when many animals were monitored at the same time and visualized the steps of these individuals. In Figure bellow the seven chosen individuals (Caroline, Fritz, Isabelle, Nicole, Rosa, Ruth, Sabine) all show a similar step pattern during the first week of January 2015, with more active and more static stretches. The step lengths were longer during the day and we can see a clear static pattern at the night and mornings.
+
 ```{r, warning = FALSE, message = FALSE, echo=FALSE}
 
-all_January2015 <- wildschwein_BE %>%				#Making dataframe for all animals in one week in 2015
+athel_January2015 <- wildschwein_BE %>%				#Making dataframe for all animals in one week in 2015
   filter(DatetimeUTC >=as.Date("2015-01-01")& DatetimeUTC <=as.Date("2015-01-08"))
   
 ggplot(all_January2015, mapping = aes(DatetimeUTC, steplength))+ 	#Visualizing steplength of all_January2015 
@@ -131,10 +143,7 @@ ggplot(all_January2015, mapping = aes(DatetimeUTC, steplength))+ 	#Visualizing s
 ```
 
 
-
 ## R code
-
-
 ## Steplengths
 ```{r, warning = FALSE, message = FALSE}
 wildschwein_BE <- wildschwein_BE %>%
@@ -223,10 +232,15 @@ k12_segments_2h <- k12_segments_2h %>%    #Adding hour of start and end of a seg
 k12_segments_2h <- k12_segments_2h %>%
   mutate(hour_max = hour(max))
 
-hour_min <- table(k12_segments_2h$hour_min) #Visualiing start of segments
+```
+
+The graphs shows when the 
+
+```{r}
+hour_min <- table(k12_segments_2h$hour_min) #Visualing start of segments
 barplot(hour_min)
 
-hour_max <- table(k12_segments_2h$hour_max) #Visualiing end of segments
+hour_max <- table(k12_segments_2h$hour_max) #Visualing end of segments
 barplot(hour_max)
 
 ```
