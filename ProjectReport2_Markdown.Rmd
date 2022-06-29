@@ -32,9 +32,13 @@ wildschwein_BE <-
 
 ## Introduction
 As GPS technology is advancing, there is a surge in the development of new methods for studying animal movement. One particular interest is to infer animal spatial behavior from movement data. 
-The spatial behavior of an animal has a wide meaning such as movement, habitat selection, home range, core area, territoriality, and migration. It can be influenced by decisions relating to foraging, movement, avoidance, resting, territorial activity, mating, and rearing young. In movement data, these behaviors can all show specific patterns (Hance et al, 2021). However, it is often the case, that a time series of animal locations is the result of multiple behaviors (Patterson et al, 2009). For example, an animal staying in one place because it is sleeping or moving very slowly while foraging results in a similar static pattern: the distance between consecutive points would be very low. Distinguishing between such similar patterns and concluding on the underlying behavior is a challenge. 
+
+The spatial behavior of an animal has a wide meaning such as movement, habitat selection, home range, core area, territoriality, and migration. It can be influenced by decisions relating to foraging, movement, avoidance, resting, territorial activity, mating, and rearing young. In movement data, these behaviors can all show specific patterns (Hance et al, 2021). However, it is often the case, that a time series of animal locations is the result of multiple behaviors (Patterson et al, 2009). For example, an animal staying in one place because it is sleeping or moving very slowly while foraging results in a similar static pattern: the distance between consecutive points would be very low. Distinguishing between such similar patterns and concluding on the underlying behavior is a challenge.
+
 In this research project, we attempt to make conclusions about the resting behavior of 19 wild boars based on their movement data. More specifically, we tried finding periods in time when the wild boars did not move quickly, in which they were thus stationary. As it is reported that wild boar sleep around twelve hours per day (Wild Boar – WLS, n.d.), we were interested in the length of the time span in which the monitored animals stayed stationary.
+
 Further, we investigated where the wild boar spend these stationary periods. In general, wild boar prefer broad-leaved forests with older mast species (beech, oak) while foraging, and in contrast, the coniferous forest is preferred for their resting sites as well as secure places for wallowing and sleeping (Erdtmann & Keuling, 2020). 
+
 The research questions were thus:
 •	For how long are the monitored wild boar stationary on average?
 •	Where do the wild boar spend these stationary periods?
@@ -98,7 +102,11 @@ In addition, we received a dataset from the ZHAW containing habitat information 
 ### Analysis
 We used RStudio 2021.09.0 for all subsequently described analysis.
 To answer the research question of when the monitored wild boar were stationary, we first calculated the step length for each fix point, meaning the Euclidean distance between consecutive fix points. We then used a temporal window approach as described in Laube & Purves (2011). We tried different window sizes (k) from k = 4 to k = 20, corresponding to time frames of approximately one to five hours considering the mean time lag between consecutive points. Since we were looking for longer stationary periods, we decided to use k = 12 (3 hours) for subsequent analysis. For each temporal window, we calculated the mean step length. 
-To find stationary time spans in the wild boar movement we needed to define a threshold of mean step length per temporal window. We defined all temporal windows with a mean Euclidian distance of less than 10 m as static. This threshold was chosen due to the approximate accuracy of the GPS device being 10 m. We then joined all consecutive static temporal windows to one segment and removed the non-static segments. Finally, we calculated the mean time frame of each static segment. The segments were then filtered, and any with lengths of less than two hours were removed as we were interested in long stationary segments.
+
+To find stationary time spans in the wild boar movement we needed to define a threshold of mean step length per temporal window. We defined all temporal windows with a mean Euclidian distance of less than 10 m as static. This threshold was chosen due to the approximate accuracy of the GPS device being 10 m. We then joined all consecutive static temporal windows to one segment and removed the non-static segments. 
+
+Finally, we calculated the mean time frame of each static segment. The segments were then filtered, and any with lengths of less than two hours were removed as we were interested in long stationary segments.
+
 In order to answer the second research question, we added the habitat information to the filtered stationary segments. We then evaluated in what habitat the stationary segments are located and if any seasonal or daily structure could be observed. 
 
 
