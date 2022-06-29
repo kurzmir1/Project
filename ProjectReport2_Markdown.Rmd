@@ -48,7 +48,7 @@ The research questions were thus:
 
 ## Material and Methods
 ## Study area
-The range of observed area mostly include Gampelen and Ins and its surroundings. Gampelen and Ins are municipalities that lay in the canton of Bern and are mostly covered with agricultural lands and forest. The area is located by the Lake Neuchâtel and there are also large areas of wet meadows on the lake border. Themovement of the observed wild boars is spread across the area, but the majority of the animals stay near the lake (see picture xx).  
+The range of observed area mostly include Gampelen and Ins and its surroundings. Gampelen and Ins are municipalities that lay in the canton of Bern and are mostly covered with agricultural lands and forest. The area is located by the Lake Neuchâtel and there are also large areas of wet meadows on the lake border. The movement of the observed wild boars is spread across the area, but the majority of the animals stay near the lake (see Figure xx).  
 
 ### Home range of animals
 ```{r, ECHO=FALSE}
@@ -103,7 +103,6 @@ In addition, we received a dataset from the ZHAW containing habitat information 
 
 ## Habitat data
 ```{r, ECHO=FALSE}
-crop_fanel <- read_sf("Feldaufnahmen_Fanel.gpkg")
 ggplot(crop_fanel) +
   geom_sf(aes(fill = Frucht))
 
@@ -250,7 +249,7 @@ hour_max <- table(k12_segments_2h$hour_max) #Visualing end of segments
 barplot(hour_max)
 
 ```
-We were interest in the location of static segments of monitored animals. Because the sampling time and interval is different for many observed animal, we analyzed four animals, which had the most data points. We observed their behaviour in time 5 months time period, from 1.1.2015 to 5.1.2015. From the graph we can see that the static segments are distributed differently for each animal. Carolines and Rosas static points are scattered around the observed area, and Ruths and Sabines static points are more or less in the same place.
+We were interested in the location of static segments of monitored animals. Because the sampling time and interval is different for many observed animal, we analyzed four animals, which had the most data points. We observed their behaviour in the 5 months time period, from 1.1.2015 to 5.1.2015. From the graph we can see that the static segments are distributed differently for each animal. Carolines and Rosas static points are scattered around the observed area, and Ruths and Sabines static points are more or less in the same place.
 
 ##Static segments < 2h
 ```{r}
