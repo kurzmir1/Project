@@ -201,9 +201,7 @@ k12_segments <- st_as_sf(k12_segments, coords = c("segment_E", "segment_N"), crs
 k12_segments_2h <- k12_segments %>% 			#Filtering out all stationary segments below 2h
   filter(timediff > 120)
   
-k12_segments_2h <- 					#Adding TierName
-  st_join(k12_segments_2h, wildschwein_BE_win_k12, by = "segment_ID") 
-  
+ 
 ```
 ## Exploring stationary segments
 ```{r, warning = FALSE, message = FALSE}
@@ -239,9 +237,9 @@ We were interest in the location of static segments of monitored animals. Becaus
 target <- c("Sabine", "Caroline", "Rosa", "Ruth")
 all_segments <- k12_segments_2h %>%
   filter(TierName %in% target)%>%
-  filter(DatetimeUTC >=as.Date("2015-01-01")& DatetimeUTC <=as.Date("2015-05-01"))
+  filter(min >=as.Date("2015-01-01")& min <=as.Date("2015-05-01"))
 
-ggplot(data =all_segments, mapping = aes(x= E, y=N) )+
+ggplot(data =all_segments, mapping = aes(x= segment_E, y=segment_N) )+
   geom_point(aes(colour=TierName))+
   coord_equal()+
   facet_wrap(~ TierName, ncol = 5)
@@ -250,11 +248,10 @@ We also added all the static segments of all the animals on the map. We can see 
 
 ## Static segments on the map
 ```{r}
+library(tmap)
 library(terra)
 pk100_BE <- terra::rast("pk100_BE.tif")
-plot(pk100_BE)
 
-library(tmap)
 tm_shape(pk100_BE) + 
   tm_rgb() +
 tm_shape(k12_segments_2h) +
