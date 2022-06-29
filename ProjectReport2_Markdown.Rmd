@@ -27,7 +27,6 @@ wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, rem
 crop_fanel <- read_sf("Feldaufnahmen_Fanel.gpkg") 				#Reading in habitat data
 wildschwein_BE <- 
   st_join(wildschwein_BE, crop_fanel) #Annotating habitat to all points
-wildschwein_BE$day[wildschwein_BE$day != "Tag"] <- "Nacht" 		#Sorting everything into day or night
 ```
 
 
