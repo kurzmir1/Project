@@ -91,7 +91,9 @@ wildschwein_BE %>%
   guides(color = guide_colorbar(title.position = "top", title.hjust = .5, barwidth = unit(20, "lines"), barheight = unit(.5, "lines")))
 ```
 
-In addition, we received a dataset from the ZHAW containing habitat information about the investigates area. This dataset included the factors forest, wet meadow and x different crops. 
+In addition, we received a dataset from the ZHAW containing habitat information about the investigates area. This dataset included the factors forest, wet meadow and different types of crops. 
+
+
 
 ### Analysis
 We used RStudio 2021.09.0 for all subsequently described analysis.
@@ -229,10 +231,10 @@ segment_habitat<- table(k12_segments_2h$segment_habitat) #Visualizing habitat
 barplot(segment_habitat)
 ```
 
-##Discussion
+## Discussion
 It’s difficult to link the observed pattern in the GPS data to the behavior of resting. Similar patterns could arise from different behaviors or could be a mixture of multiple behaviors. With our approach inspired by Laube & Purves (2011) we tried differentiating between segments when the animals were walking very slowly or actually staying in one place. However, if the animals move slowly for many hours, the mean of the temporal window would stay just as small as when the animal is staying in one place. The approach described in Hance et al. (2021) could offer a solution to answer our research questions further. 
-Because the time intervals of the measurements of animals were different and for some animals there were gabs between two observed fix points, our resultants may have some deviations from an actual behavior. 
-It could also be interesting to see if the hypothesis that resting behavior is mostly after foraging is true.
+Because the time intervals of the measurements of animals were different and for some animals there were gabs between two observed fix points, our resultats may have some deviations from an actual behavior. During the missing values the animal could move, but we assumed it was stationary. Other problem with the credibility of our result could be the chosen k. Choosing rolling window k12 (3 hours) was based only on our assumption that with this range we will get longer stationary periods, it could be that with different k we would get different results. 
+The results were slightly undervalued in comperes to the literature research, which stated that wild boars sleep twelve hours. It was shown that observed animals are stationary on average for eight hours and that they are mostly in the wet meadows during their resting time. We could also try to see if their resting behavior change in between seasons, for example if they res longer in the winter. It could also be interesting to see if the hypothesis that resting behavior is mostly after foraging is true.
 
 
 More points to discuss:
