@@ -237,7 +237,4 @@ Because the time intervals of the measurements of animals were different and for
 The results were slightly undervalued in comperes to the literature research, which stated that wild boars sleep twelve hours. It was shown that observed animals are stationary on average for eight hours and that they are mostly in the wet meadows during their resting time. We could also try to see if their resting behavior change in between seasons, for example if they res longer in the winter. It could also be interesting to see if the hypothesis that resting behavior is mostly after foraging is true.
 
 
-More points to discuss:
-•	Different time intervals of measurements
-•	Choosing K
-•	Choosing threshold meters?
+
