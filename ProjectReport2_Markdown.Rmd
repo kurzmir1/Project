@@ -5,12 +5,11 @@ author: Nina Poglic & Mirjam Kurz
 date: 03-07-2022
 output: pdf_document
 ---
-
+  
 
 #### Packages and loading data
 ```{r, warning = FALSE, message = FALSE}
 library(ComputationalMovementAnalysisData)
-
 library(readr)        # to import tabular data (e.g. csv)
 library(dplyr)        # to manipulate (tabular) data
 library(ggplot2)      # to visualize data
@@ -21,16 +20,13 @@ library(zoo)
 library(tmap)
 library(raster)
 library(forcats)
+library(knitr)
 
 load(file='wildschwein_BE.rda')
-
 wildschwein_BE <- st_as_sf(wildschwein_BE, coords = c("E", "N"), crs = 2056, remove = FALSE)
-
 crop_fanel <- read_sf("Feldaufnahmen_Fanel.gpkg") 				#Reading in habitat data
-
 wildschwein_BE <- 
   st_join(wildschwein_BE, crop_fanel) #Annotating habitat to all points
-
 wildschwein_BE$day[wildschwein_BE$day != "Tag"] <- "Nacht" 		#Sorting everything into day or night
 ```
 
@@ -45,17 +41,15 @@ The research questions were thus:
 •	Where do the wild boar spend these stationary periods?
 
 
-
 ## Material and Methods
-## Study area
-The range of observed area mostly include Gampelen and Ins and its surroundings. Gampelen and Ins are municipalities that lay in the canton of Bern and are mostly covered with agricultural lands and forest. The area is located by the Lake Neuchâtel and there are also large areas of wet meadows on the lake border. The movement of the observed wild boars is spread across the area, but the majority of the animals stay near the lake (see Figure xx).  
+### Study area
+The area where the observed wild boar are located includes mostly Gampelen and its surroundings. Gampelen is mostly covered with agricultural land and forest, and lays by the Lake Neuchâtel. At the border of the lake, there are also large areas of wet meadows. 
 
 ### Home range of animals
-```{r, ECHO=FALSE}
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 1: Home range of the 19 monitored wild boar.*"}
 wildschwein_BE_grouped <- group_by(wildschwein_BE,TierID)
 wildschwein_BE_smry <- summarise(wildschwein_BE_grouped)
 mcp <- st_convex_hull(wildschwein_BE_smry)
-
 tmap_mode("view")
 tm_shape(mcp) +
     tm_polygons(col = "TierID",alpha = 0.4,border.col = "orange") +
@@ -78,13 +72,12 @@ The dataset contained a total of 327’255 location fix points with the followin
    *4th night quarter): 3.30 – 5 am
    *Dawn: 5 – 8 am
 We did not use the additional information on moon illumination and the collar ID for this project.
-The data was collected with GPS collars fitted to 19 wild boars. They were programmed to attempt a GPS location fix every 15 minutes. The mean time lag between consecutive points was 17.8 minutes. The total study time lasted for 874 days from the 28th of May 2014 to the 18th of October 2016. However, not all animals were monitored at the same time and some individuals show gaps in their sampling interval (see Figure bellow). 
+The data was collected with GPS collars fitted to 19 wild boars. They were programmed to attempt a GPS location fix every 15 minutes. The mean time lag between consecutive points was 17.8 minutes. The total study time lasted for 874 days from the 28th of May 2014 to the 18th of October 2016. However, not all animals were monitored at the same time and some individuals show gaps in their sampling interval (see Figure 2). 
 
-```{r , echo=FALSE}
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 2: Sampling regime: Sampling interval and observed time range for each individuals (TierName) during the whole study period.*"}
 limits <- c(0,500)
 breaks = seq(0,500,50)
 labels = paste(c(rep("",length(breaks)-1),">"), breaks)
-
 wildschwein_BE %>%
   mutate(TierName = fct_reorder(TierName, DatetimeUTC,min, .desc = TRUE)) %>%
   group_by(TierID, TierName, CollarID) %>%
@@ -99,66 +92,30 @@ wildschwein_BE %>%
   guides(color = guide_colorbar(title.position = "top", title.hjust = .5, barwidth = unit(20, "lines"), barheight = unit(.5, "lines")))
 ```
 
-In addition, we received a dataset from the ZHAW containing habitat information about the investigated area. This dataset includes the factors forest, wet meadow and different types of crops. 
-
-## Habitat data
-```{r, ECHO=FALSE}
-ggplot(crop_fanel) +
-  geom_sf(aes(fill = Frucht))
-
-```
+In addition, we received a dataset from the ZHAW containing habitat information about the investigates area. This dataset included the factors forest, wet meadow and x different crops. 
 
 ### Analysis
 We used RStudio 2021.09.0 for all subsequently described analysis.
 To answer the research question of when the monitored wild boar were stationary, we first calculated the step length for each fix point, meaning the Euclidean distance between consecutive fix points. We then used a temporal window approach as described in Laube & Purves (2011). We tried different window sizes (k) from k = 4 to k = 20, corresponding to time frames of approximately one to five hours considering the mean time lag between consecutive points. Since we were looking for longer stationary periods, we decided to use k = 12 (3 hours) for subsequent analysis. For each temporal window, we calculated the mean step length. 
-To find stationary time spans in the wild boar movement we needed to define a threshold of mean step length per temporal window. We defined all temporal windows with a mean Euclidian distance of less than 10 m as static. This threshold was chosen due to the approximate accuracy of the GPS device being 10 m. We then joined all consecutive static temporal windows to one segment and removed the non-static segments. Finally, we calculated the mean time frame of each static segment. The segments were then filtered, and any lengths with less than two hours were removed, as we were interested in long stationary segments.
+To find stationary time spans in the wild boar movement we needed to define a threshold of mean step length per temporal window. We defined all temporal windows with a mean Euclidian distance of less than 10 m as static. This threshold was chosen due to the approximate accuracy of the GPS device being 10 m. We then joined all consecutive static temporal windows to one segment and removed the non-static segments. Finally, we calculated the mean time frame of each static segment. The segments were then filtered, and any with lengths of less than two hours were removed as we were interested in long stationary segments.
 In order to answer the second research question, we added the habitat information to the filtered stationary segments. We then evaluated in what habitat the stationary segments are located and if any seasonal or daily structure could be observed. 
 
 
 
 ## Results
 
-In a first step, we explored the calculated step lengths. The mean step length of all animals was 39 meters, the median seven meters (see Figure bellow). We can see that animals are mostly not taking long distance and are moving slower.
-
-```{r, warning = FALSE, message = FALSE, echo=FALSE}
+In a first step, we explored the calculated step lengths. The mean step length of all animals was 39 meters, the median seven meters (see Figure 2). 
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 3: Distribution of the distance of consecutive points (steplength) of all monitored wild boar.*"}
 wildschwein_BE <- wildschwein_BE %>%
   group_by(TierID) %>%
   mutate(steplength = sqrt((E- lead(E,1))^2 + (N -lead(N,1))^2)) #Calculating steplength
-
-mean(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating mean steplength
-
-median(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating median steplength
  
 steplength <- wildschwein_BE$steplength         #Visualizing steplengths
-hist(steplength, breaks = 100, xlim = c(0, 500),
-  col="darkmagenta",
-  )
+hist(steplength, breaks = 10, xlim = c(0, 50), main=NULL)
 ```
 
-We then searched for a period when many animals were monitored at the same time and visualized the steps of these individuals. In Figure bellow the seven chosen individuals (Caroline, Fritz, Isabelle, Nicole, Rosa, Ruth, Sabine) all show a similar step pattern during the first week of January 2015, with more active and more static stretches. The step lengths were longer during the day and we can see a clear static pattern at the night and mornings.
-
-```{r, warning = FALSE, message = FALSE, echo=FALSE}
-
-athel_January2015 <- wildschwein_BE %>%				#Making dataframe for all animals in one week in 2015
-  filter(DatetimeUTC >=as.Date("2015-01-01")& DatetimeUTC <=as.Date("2015-01-08"))
-  
-ggplot(all_January2015, mapping = aes(DatetimeUTC, steplength))+ 	#Visualizing steplength of all_January2015 
-  geom_line(aes(colour=TierName))+
-  facet_wrap(~TierName)
-```
-
-
-## R code
-## Steplengths
-```{r, warning = FALSE, message = FALSE}
-wildschwein_BE <- wildschwein_BE %>%
-  group_by(TierID) %>%
-  mutate(steplength = sqrt((E- lead(E,1))^2 + (N -lead(N,1))^2)) #Calculating steplength
-
-mean(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating mean steplength
-
-median(wildschwein_BE$steplength, na.rm=TRUE) 	#Calculating median steplength
-
+We then searched for a period when many animals were monitored at the same time and visualized the steps of these individuals. In Figure 4 the seven chosen individuals (Caroline, Fritz, Isabelle, Nicole, Rosa, Ruth, Sabine) all show a similar step pattern during the first week of January 2015, with more active and more static stretches. 
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 4: Distribution over time of the distance of consecutive points (steplength) of seven individuals during the first week of January.*" }
 all_January2015 <- wildschwein_BE %>%				#Making dataframe for all animals in one week in 2015
   filter(DatetimeUTC >=as.Date("2015-01-01")& DatetimeUTC <=as.Date("2015-01-08"))
   
@@ -166,113 +123,117 @@ ggplot(all_January2015, mapping = aes(DatetimeUTC, steplength))+ 	#Visualizing s
   geom_line(aes(colour=TierName))+
   facet_wrap(~TierName)
 ```
-## Stationary segments
-```{r, warning = FALSE, message = FALSE}
+
+In a next step, we investigated the time length of the temporal windows defined as stationary. With the chosen parameters of k=12 for the rolling window and maximum 10 m as mean steplength for each rolling window, we found a total of 5385 stationary segments, which corresponds to 48% of all defined segments. After filtering short segments of less than two hours only 3009 stationary segments were left, approximately a third of all defined segments. Their mean time span was 8.5 hours (507 minutes), the median 7.75 hours (465 minutes) (see Figure 5). 
+
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap= "*Figure 5: Time length of stationary segments of all animals after filtering out short segments below 2 hours.*"}
 window_k12 <- wildschwein_BE
 window_k12$k12 <- rollmean(wildschwein_BE$steplength, k=12, fill = NA, align = "left") #calculate mean distance for rolling window k12
-
 window_k12 <- window_k12 %>% 
   ungroup() %>%
   mutate(stationary_k12_10 = k12 < 10) 				#Assigning values below 10 as stationary, in new dataframe
-
 rle_id <- function(vec){						#Function for making segments
   x <- rle(vec)$lengths
   as.factor(rep(seq_along(x), times=x)) 
 }
-
 window_k12 <-window_k12 %>% 					#Making segments
   mutate(
     segment_ID = rle_id(stationary_k12_10) 
   )
-
-
 k12_segments <- window_k12 %>%					#Calculating time span of each stationary segment
   st_drop_geometry() %>%
   filter(stationary_k12_10 == "TRUE") %>%
   group_by(TierName, segment_ID) %>%
   summarise(min = min(DatetimeUTC), max = max(DatetimeUTC)) %>%  
   mutate(timediff = as.integer(difftime(max, min, units = "mins")))
-
-
 segments_E <- window_k12 %>%					#Giving each segment the first coordinate of the segment
   st_drop_geometry %>%
   group_by(segment_ID) %>%
   summarise(segment_E = first(E))
-
 segments_N <- window_k12 %>%
   st_drop_geometry() %>%
   group_by(segment_ID) %>%
   summarise(segment_N = first(N))
-
 k12_segments <-
   left_join(k12_segments, segments_E, by = "segment_ID")
-
 k12_segments <-
   left_join(k12_segments, segments_N, by = "segment_ID")
-
 k12_segments <- st_as_sf(k12_segments, coords = c("segment_E", "segment_N"), crs = 2056, remove = FALSE)
-
 k12_segments_2h <- k12_segments %>% 			#Filtering out all stationary segments below 2h
   filter(timediff > 120)
   
- 
-```
-## Exploring stationary segments
-```{r, warning = FALSE, message = FALSE}
-mean(k12_segments_2h$timediff)					#Calculating mean of all stationary segments
+ggplot(k12_segments_2h, mapping = aes(timediff))+
+  geom_histogram(bins = 200)+
+  xlim(0,2000)
 
-median(k12_segments_2h$timediff)				#Calculating median of all stationary segments
-	
-mean_stationary_animal <- k12_segments_2h %>% 		#Calculating mean stationary time per animal
+```
+The mean time length of stationary elements per animal ranged from 187.375 minutes (Joanna) to 823 minutes (Fritz) (Table 2). 
+```{r, warning = FALSE, message = FALSE, echo=FALSE}
+mean_stationary_animal <- k12_segments_2h %>% 		#Calculating mean stationary time per 
   st_drop_geometry() %>%
   group_by(TierName) %>%
   summarise_at(vars(timediff), list(name = mean))
 
-write.table(mean_stationary_animal)
 
-
+kable(mean_stationary_animal, caption = "Mean time length of stationary segments per individual.")
+```
+Following this, we looked at the time of day during which these stationary segments were found. The majority of the stationary segments started in between 2 and 6 am and ended between 1 and 4 pm (see Figure 6 & 7).
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 6: The hour of the first location of all stationary segments.*"}
 k12_segments_2h <- k12_segments_2h %>%    #Adding hour of start and end of a segment
   mutate(hour_min = hour(min))
-
 k12_segments_2h <- k12_segments_2h %>%
   mutate(hour_max = hour(max))
-
-```
-
-The graphs shows when the 
-
-```{r}
-hour_min <- table(k12_segments_2h$hour_min) #Visualing start of segments
+hour_min <- table(k12_segments_2h$hour_min) #Visualiing start of segments
 barplot(hour_min)
-
-hour_max <- table(k12_segments_2h$hour_max) #Visualing end of segments
-barplot(hour_max)
-
 ```
-We were interested in the location of static segments of monitored animals. Because the sampling time and interval is different for many observed animal, we analyzed four animals, which had the most data points. We observed their behaviour in the 5 months time period, from 1.1.2015 to 5.1.2015. From the graph we can see that the static segments are distributed differently for each animal. Carolines and Rosas static points are scattered around the observed area, and Ruths and Sabines static points are more or less in the same place.
 
-##Static segments < 2h
-```{r}
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 7: The hour of the last location of all stationary segments.*"}
+hour_max <- table(k12_segments_2h$hour_max) #Visualiing end of segments
+barplot(hour_max)
+```
+
+Last but not least, we were interested in the location of the stationary segments.We gave each segment the location of the first point in the segment.
+Because the sampling time and interval was different for many observed animal, we investigated the four animals, which had the most data points in a first step. These animals were monitored over a five month period (1.1.2015 - 1.5.2015). Figure 8 shows, that the stationary segments are distributed differently for each animal. While Caroline and Rosa stayed staionary all around the observed area, Ruth and Sabine stayed stationary more or less in the same place. 
+
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 8: Location of stationary segments of the four animals with the most data points: Sabine, Caroline, Rosa and Ruth.*"}
 target <- c("Sabine", "Caroline", "Rosa", "Ruth")
 all_segments <- k12_segments_2h %>%
   filter(TierName %in% target)%>%
   filter(min >=as.Date("2015-01-01")& min <=as.Date("2015-05-01"))
-
 ggplot(data =all_segments, mapping = aes(x= segment_E, y=segment_N) )+
   geom_point(aes(colour=TierName))+
   coord_equal()+
   facet_wrap(~ TierName, ncol = 5)
 ```
-We also added all the static segments of all the animals on the map. We can see that the majority of the observed wild boar are spending their resting time near the wetlend or in the woods. 
 
-## Static segments on the map
-```{r}
-library(tmap)
-library(terra)
+We also added all the stationary segments of all the monitored animals on a map. The majority of the observed wild boar are spending their resting time near the wet meadows or in the woods (figure 9). 
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 9: Location of stationary segments of all observed animals.*"}
 pk100_BE <- terra::rast("pk100_BE.tif")
-
+pk100_BE <- terra::rast("pk100_BE.tif")
 tm_shape(pk100_BE) + 
   tm_rgb() +
-tm_shape(k12_segments_2h) +
-  tm_symbols(col = "blue", size = .3) 
+  tm_shape(k12_segments_2h) +
+  tm_symbols(col = "TierName", size = .3) 
 ```
+By adding the habitat of the first point of a segment to the segment, it was confirmed, that most stationary segments were spent in wet meadows (figure 10).
+```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 10: Habitat type of all stationary segments.*"}
+habitat <- window_k12 %>%                             #Giving each segment the first habitat of the segment
+  st_drop_geometry %>%
+  group_by(segment_ID) %>%
+  summarise(segment_habitat = first("Frucht.x"))
+
+k12_segments <-
+  left_join(k12_segments, habitat, by = "segment_ID")
+
+ggplot(k12_segments_2h, mapping = aes(segment_habitat))+
+  geom_histogram(bins = 200)
+```
+
+##Discussion
+It’s difficult to link the observed pattern in the GPS data to the behavior of resting. Similar patterns could arise from different behaviors or could be a mixture of multiple behaviors. With our approach inspired by Laube & Purves (2011) we tried differentiating between segments when the animals were walking very slowly or actually staying in one place. However, if the animals move slowly for many hours, the mean of the temporal window would stay just as small as when the animal is staying in one place. The approach described in Hance et al. (2021) could offer a solution to answer our research questions further. 
+It could also be interesting to see if the hypothesis that resting behavior is mostly after foraging.
+
+More points to discuss:
+•	Different time intervals of measurements
+•	Choosing K
+•	Choosing threshold meters?
