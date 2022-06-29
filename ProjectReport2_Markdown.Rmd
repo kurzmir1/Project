@@ -219,13 +219,14 @@ By adding the habitat of the first point of a segment to the segment, it was con
 habitat <- window_k12 %>%                             #Giving each segment the first habitat of the segment
   st_drop_geometry %>%
   group_by(segment_ID) %>%
-  summarise(segment_habitat = first("Frucht.x"))
+  summarise(segment_habitat = first(Frucht.x))
 
-k12_segments <-
-  left_join(k12_segments, habitat, by = "segment_ID")
+k12_segments_2h <-
+  left_join(k12_segments_2h, habitat, by = "segment_ID")
 
-ggplot(k12_segments_2h, mapping = aes(segment_habitat))+
-  geom_histogram(bins = 200)
+
+segment_habitat<- table(k12_segments_2h$segment_habitat) #Visualizing habitat
+barplot(segment_habitat)
 ```
 
 ##Discussion
