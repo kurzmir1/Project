@@ -119,8 +119,10 @@ wildschwein_BE <- wildschwein_BE %>%
   group_by(TierID) %>%
   mutate(steplength = sqrt((E- lead(E,1))^2 + (N -lead(N,1))^2)) #Calculating steplength
  
-steplength <- wildschwein_BE$steplength         #Visualizing steplengths
-hist(steplength, breaks = 100, xlim = c(0, 500), main=NULL)
+ggplot(data=wildschwein_BE, mapping = aes(x=steplength))+        #Visualizing steplengths
+  geom_histogram( color="blue", fill="lightblue",binwidth =3)+
+  xlim(0,500)+
+  ylim(0,80000)
 ```
 
 We then searched for a period when many animals were monitored at the same time and visualized the steps of these individuals. In Figure 4 the seven chosen individuals (Caroline, Fritz, Isabelle, Nicole, Rosa, Ruth, Sabine) all show a similar step pattern during the first week of January 2015, with more active and more static stretches. 
@@ -172,7 +174,7 @@ k12_segments_2h <- k12_segments %>% 			#Filtering out all stationary segments be
   filter(timediff > 120)
   
 ggplot(k12_segments_2h, mapping = aes(timediff))+
-  geom_histogram(bins = 200)+
+  geom_histogram(color="blue", fill="lightblue",binwidth =3)+
   xlim(0,2000)
 
 ```
@@ -193,12 +195,20 @@ k12_segments_2h <- k12_segments_2h %>%    #Adding hour of start and end of a seg
 k12_segments_2h <- k12_segments_2h %>%
   mutate(hour_max = hour(max))
 hour_min <- table(k12_segments_2h$hour_min) #Visualiing start of segments
-barplot(hour_min)
+
+ggplot(data=k12_segments_2h, mapping = aes(hour_min))+
+  geom_bar(color="blue", fill="lightblue")+
+  xlab("Hour") + ylab("Number of segments")+
+  ggtitle("Time of the the first location of all stationary segments")
 ```
 
 ```{r, warning = FALSE, message = FALSE, echo=FALSE, fig.cap = "*Figure 7: The hour of the last location of all stationary segments.*"}
 hour_max <- table(k12_segments_2h$hour_max) #Visualiing end of segments
-barplot(hour_max)
+
+ggplot(data=k12_segments_2h, mapping = aes(hour_max))+
+  geom_bar(color="blue", fill="lightblue")+
+  xlab("Hour") + ylab("Number of segments")+
+  ggtitle("Time of the the last location of all stationary segments")
 ```
 
 Last but not least, we were interested in the location of the stationary segments.We gave each segment the location of the first point in the segment.
@@ -229,14 +239,15 @@ By adding the habitat of the first point of a segment to the segment, it was con
 habitat <- window_k12 %>%                             #Giving each segment the first habitat of the segment
   st_drop_geometry %>%
   group_by(segment_ID) %>%
-  summarise(segment_habitat = first(Frucht.x))
+  summarise(segment_habitat = first(Frucht))
 
 k12_segments_2h <-
   left_join(k12_segments_2h, habitat, by = "segment_ID")
-
-
 segment_habitat<- table(k12_segments_2h$segment_habitat) #Visualizing habitat
-barplot(segment_habitat)
+
+ggplot(data=k12_segments_2h, mapping = aes(segment_habitat))+
+  geom_bar(color="blue", fill="lightblue")
+  
 ```
 
 ## Discussion
