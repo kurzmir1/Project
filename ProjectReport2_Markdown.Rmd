@@ -1,10 +1,10 @@
-# Detecting resting behavior of wild boar in GPS data
-by Nina Poglic & Mirjam Kurz
-
-MSc ENR, ZHAW
-Patterns and Trends in Environmental Data
-
-Date: 3.7.2022
+---
+title: Detecting resting behavior of wild boar in GPS data
+subtitle: Patterns and Trends in Environmental Data, MSc ENR, ZHAW
+author: Nina Poglic & Mirjam Kurz
+date: 03-07-2022
+output: pdf_document
+---
 
 
 #### Packages and loading data
