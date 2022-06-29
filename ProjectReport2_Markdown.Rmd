@@ -18,6 +18,8 @@ library(sf)           # to handle spatial vector data
 library(terra)        # To handle raster data
 library(lubridate)    # To handle dates and times
 library(zoo)
+library(tmap)
+library(raster)
 library(forcats)
 
 load(file='wildschwein_BE.rda')
@@ -34,18 +36,22 @@ wildschwein_BE$day[wildschwein_BE$day != "Tag"] <- "Nacht" 		#Sorting everything
 
 
 ## Introduction
-The wild boar is the wild ancestor of the domestic pig. The male is called boar, the female sow, and the subadult piglet or yearling. Wild boar are omnivorous ungulates native to Europe, Asia, and northern Africa (Thurfjell, n.d.). Wild boar is an adaptable species that can be found in urban areas utilizing both natural forage and human waste (Thurfjell, n.d.). They are social animals and live in groups with adult females and their offspring, while adult males are solitary (Thurfjell, n.d.). 
-The spatial behavior of an animal has a wide meaning such as movement, habitat selection, home range, core area, territoriality, and migration. It can be influenced by decisions relating to foraging, movement, avoidance, resting, territorial activity, mating, and rearing young. In general, wild boar prefer broad-leaved forests with older mast species (beech, oak) while foraging, and in contrast, the coniferous forest is preferred for their resting sites as well as secure places for wallowing and sleeping (Erdtmann & Keuling, 2020). These findings pave the way toward implementing effective control strategies in the wild and animal welfare in captivity. 
-In this research project, we were analyzing the resting behavior. On average the wild boar is reported to be sleeping around twelve hours per day. Our main questions were how long the wild boar sleep and where they usually choose to sleep (forest or agricultural land). 
-Our research is based on the assumption that resting behavior is defined by static movement (short step lengths), but it could also be that animals are in one place for a longer period of time to clean themselves. The GPS couldn’t recognize the difference between the two, therefor we had to define the treshold which could help to rule out non-resting behavior, with the assumtion, that wild boars do not clean for several hours.  
+As GPS technology is advancing, there is a surge in the development of new methods for studying animal movement. One particular interest is to infer animal spatial behavior from movement data. 
+The spatial behavior of an animal has a wide meaning such as movement, habitat selection, home range, core area, territoriality, and migration. It can be influenced by decisions relating to foraging, movement, avoidance, resting, territorial activity, mating, and rearing young. In movement data, these behaviors can all show specific patterns (Hance et al, 2021). However, it is often the case, that a time series of animal locations is the result of multiple behaviors (Patterson et al, 2009). For example, an animal staying in one place because it is sleeping or moving very slowly while foraging results in a similar static pattern: the distance between consecutive points would be very low. Distinguishing between such similar patterns and concluding on the underlying behavior is a challenge. 
+In this research project, we attempt to make conclusions about the resting behavior of 19 wild boars based on their movement data. More specifically, we tried finding periods in time when the wild boars did not move quickly, in which they were thus stationary. As it is reported that wild boar sleep around twelve hours per day (source??), we were interested in the length of the time span in which the monitored animals stayed stationary.
+Further, we investigated where the wild boar spend these stationary periods. In general, wild boar prefer broad-leaved forests with older mast species (beech, oak) while foraging, and in contrast, the coniferous forest is preferred for their resting sites as well as secure places for wallowing and sleeping (Erdtmann & Keuling, 2020). 
+The research questions were thus:
+•	For how long are the monitored wild boar stationary on average?
+•	Where do the wild boar spend these stationary periods?
+
 
 
 ## Material and Methods
 ## Study area
-The range of observed area mostly include Gampelen and Ins and its surroundings. Gampelen and Ins are municipalities that lay in the canton of Bern and are mostly covered with land for agricultural purposes and forest. Area lays by the Lake Neuchâtel, which provide wild bord the source of water. From the picture bellow we can see, that movement of animals is spread across the area, but the majority of the animals stay near the lake. 
+The range of observed area mostly include Gampelen and Ins and its surroundings. Gampelen and Ins are municipalities that lay in the canton of Bern and are mostly covered with agricultural lands and forest. The area is located by the Lake Neuchâtel and there are also large areas of wet meadows on the lake border. Themovement of the observed wild boars is spread across the area, but the majority of the animals stay near the lake (see picture xx).  
 
 ### Home range of animals
-```{r}
+```{r, ECHO=FALSE}
 wildschwein_BE_grouped <- group_by(wildschwein_BE,TierID)
 wildschwein_BE_smry <- summarise(wildschwein_BE_grouped)
 mcp <- st_convex_hull(wildschwein_BE_smry)
@@ -93,10 +99,10 @@ wildschwein_BE %>%
   guides(color = guide_colorbar(title.position = "top", title.hjust = .5, barwidth = unit(20, "lines"), barheight = unit(.5, "lines")))
 ```
 
-In addition, we received a dataset from the ZHAW containing habitat information about the investigates area. This dataset includes the factors forest, wet meadow and different types of crops. 
+In addition, we received a dataset from the ZHAW containing habitat information about the investigated area. This dataset includes the factors forest, wet meadow and different types of crops. 
 
 ## Habitat data
-```{r}
+```{r, ECHO=FALSE}
 crop_fanel <- read_sf("Feldaufnahmen_Fanel.gpkg")
 ggplot(crop_fanel) +
   geom_sf(aes(fill = Frucht))
