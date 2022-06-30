@@ -121,7 +121,7 @@ wildschwein_BE <- wildschwein_BE %>%
  
 ggplot(data=wildschwein_BE, mapping = aes(x=steplength))+        #Visualizing steplengths
   geom_histogram( color="blue", fill="lightblue",binwidth =3)+
-  xlim(0,500)+
+  xlim(0,300)+
   ylim(0,80000)
 ```
 
